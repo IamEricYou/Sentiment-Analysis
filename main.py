@@ -84,7 +84,63 @@ def main():
     make_txt(sentences, vocab,featureInclude,"train")
     make_txt(sentences_ts, vocab_ts,featureInclude_ts,"test")
 
-    # for elem in featureInclude:
-    #     print elem
+    vocabLength = len(vocab)
+
+    # calculating P(CD)
+    NumRecords = len(sentences)
+    NumRecCDFalse = 0
+    NumRecCDTrue = 0
+
+    for c in range(0,len(sentences)):
+        if featureInclude[c][-1] == 1:
+            NumRecCDTrue+=1
+        elif featureInclude[c][-1] == 0:
+            NumRecCDFalse+=1
+
+    Pcd= [math.log(Decimal(NumRecCDTrue)/Decimal(NumRecords)),math.log(Decimal(NumRecCDFalse)/Decimal(NumRecords))]
+
+    #calculating vocab conditional probability
+    VocabCondProb =[]
+
+    for v in range(0,len(vocab)):
+        temp = []
+        NumRecXTrueCDTrue = 1
+        NumRecXTrueCDFalse = 1
+        NumRecXFalseCDTrue = 1
+        NumRecXFalseCDFalse = 1
+
+        # index v will be vocab index
+        for c in range(0,len(sentences)):
+            if featureInclude[c][-1] == 1 and featureInclude[c][v] == 1:
+                NumRecXTrueCDTrue+=1
+            elif featureInclude[c][-1] == 0 and featureInclude[c][v] == 1:
+                NumRecXTrueCDFalse+=1
+            elif featureInclude[c][-1] == 1 and featureInclude[c][v] == 0:
+                NumRecXFalseCDTrue+=1
+            elif featureInclude[c][-1] == 0 and featureInclude[c][v] == 0:
+                NumRecXFalseCDFalse+=1
+
+        temp = [math.log(Decimal(NumRecXTrueCDTrue)/Decimal(NumRecCDTrue+vocabLength)),
+        math.log(Decimal(NumRecXTrueCDFalse)/Decimal(NumRecCDFalse+vocabLength)),
+        math.log(Decimal(NumRecXFalseCDTrue)/Decimal(NumRecCDTrue+vocabLength)),
+        math.log(Decimal(NumRecXFalseCDFalse)/Decimal(NumRecCDFalse+vocabLength))]
+        VocabCondProb.append(temp)
+
+    #calculations
+    PClass1=Pcd[0]
+    PClass0=Pcd[1]
+
+
+    print vocabLength
+    for m in range(0,100):
+        if vocab[m] in sentences_ts[0]:
+            PClass1 = PClass1 * VocabCondProb[m][0]
+            PClass0 = PClass0 * VocabCondProb[m][1]
+        else:
+            PClass1 = PClass1 * VocabCondProb[m][2]
+            PClass0 = PClass0 * VocabCondProb[m][3]
+
+    print PClass0
+    print PClass1
 
 main()
