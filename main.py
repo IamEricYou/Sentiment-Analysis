@@ -100,8 +100,10 @@ def Classification(sentences, featureInclude, Pcd, vocab, vocabLength, VocabCond
 
 def main():
     #Pre-processing step
-    training_data = open('trainingSet.txt','r')
-    testing_data = open('testSet.txt','r')
+    training_file = 'trainingSet.txt'
+    testing_file = 'testSet.txt'
+    training_data = open(training_file,'r')
+    testing_data = open(testing_file,'r')
 
     sentences, classification = get_data(training_data)
     sentences_ts, classification_ts = get_data(testing_data)
@@ -162,4 +164,12 @@ def main():
     print PredictedClassTr
     print "actual classification for testing data sentences"
     print classification_ts
+
+    with open("result.txt", "w") as f:
+        f.write(str("Training file used: ") + str(training_file) + str(", testing file used: ") + str(testing_file) + '\n')
+        f.write(str("Training Accuracy: ") + str(accuracyTranning) + str("%") + '\n')
+        f.write(str("Testing Accuracy: ") + str(accuracyTesting) + str("%") + '\n')
+
+    print("the result will be saved into result.txt file")
+    
 main()
