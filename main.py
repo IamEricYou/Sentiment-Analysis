@@ -1,4 +1,5 @@
 import sys
+import csv
 import numpy as np
 import collections, re
 
@@ -12,7 +13,7 @@ def get_data(data):
     bag_of_words = []
     bag_of_int = []
 
-    for line in training_data:
+    for line in data:
         lines = line.split() # splie the line by whitespace
         read_line = [n for n in lines]
         bag_of_int.append(int(read_line[-1][0]))
@@ -26,19 +27,10 @@ def get_data(data):
 
     return bag_of_words, bag_of_int
 
-
-if __name__ == '__main__':
-    sentences = [["wow","loved","the","place"], ["not","tasty","and", "the", "texture", "was", "just", "nasty"]]
-    classification = [1,0]
-
+def pre_processing(sentences, classification):
     vocab = []
     vocabLength = 0;
     featureInclude = []
-
-    training_data = open('trainingSet.txt','r')
-
-    sentences, classification = get_data(training_data)
-
     # creates sorted vocabulary
     for x in range(0,len(sentences)):
         for y in range(0,len(sentences[x])):
@@ -58,7 +50,43 @@ if __name__ == '__main__':
                 temp.append(0)
         temp.append(classification[c])
         featureInclude.append(temp)
+    
+    return vocab, featureInclude
 
-    print vocab
+def make_txt(sentence, vocab, feature, filetype):
+    if filetype == "train":
+        with open("preprocessed_train.txt", "w") as csvfile:
+            w = csv.writer(csvfile, delimiter=",")
+            w.writerow(vocab)
+            for item in feature:
+                w.writerow(item)
+        csvfile.closed
+    else:
+        with open("preprocessed_test.txt", "w") as csvfile:
+            w = csv.writer(csvfile, delimiter=",")
+            w.writerow(vocab)
+            for item in feature:
+                w.writerow(item)
+        csvfile.closed
+
+def main():
+    #Pre-processing step
+    training_data = open('trainingSet.txt','r')
+    testing_data = open('testSet.txt','r')
+
+    sentences, classification = get_data(training_data)
+    sentences_ts, classification_ts = get_data(testing_data)
+    
+    vocab, featureInclude = pre_processing(sentences, classification)
+    vocab_ts, featureInclude_ts = pre_processing(sentences_ts, classification_ts)
+
+    if vocab[0] == "": del vocab[0] #delete the first index, if the list has an empty string 
+    if vocab_ts[0] == "": del vocab_ts[0]
+
+    make_txt(sentences, vocab,featureInclude,"train")
+    make_txt(sentences_ts, vocab_ts,featureInclude_ts,"test")
+
     # for elem in featureInclude:
     #     print elem
+
+main()
