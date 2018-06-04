@@ -73,9 +73,11 @@ def make_txt(sentence, vocab, feature, filetype):
                 w.writerow(item)
         csvfile.closed
 
-def ClassAccuracy(sentences, featureInclude, Pcd, vocab, vocabLength, VocabCondProb):
-    #calculations
+def Classification(sentences, featureInclude, Pcd, vocab, vocabLength, VocabCondProb):
+    #array holds class predictions for each sentence
     PredictedClass = []
+
+    #calculations
     for s in range(0, len(sentences)):
         PClass1=Pcd[0]
         PClass0=Pcd[1]
@@ -83,6 +85,7 @@ def ClassAccuracy(sentences, featureInclude, Pcd, vocab, vocabLength, VocabCondP
             if vocab[m] in sentences[s]:
                 PClass1 = PClass1 + VocabCondProb[m][0]
                 PClass0 = PClass0 + VocabCondProb[m][1]
+        # max compare
         if PClass1 > PClass0:
             PredictedClass.append(1)
         else:
@@ -93,7 +96,7 @@ def ClassAccuracy(sentences, featureInclude, Pcd, vocab, vocabLength, VocabCondP
     for n in range(0,len(PredictedClass)):
         if PredictedClass[n] == featureInclude[n][-1]:
             correct+=1
-    return (correct/float(len(PredictedClass)))*100
+    return (correct/float(len(PredictedClass)))*100, PredictedClass
 
 def main():
     #Pre-processing step
@@ -123,15 +126,14 @@ def main():
             NumRecCDFalse+=1
 
     Pcd= [math.log(Decimal(NumRecCDTrue)/Decimal(NumRecords)),math.log(Decimal(NumRecCDFalse)/Decimal(NumRecords))]
+
+
     #calculating vocab conditional probability
     VocabCondProb =[]
-
     for v in range(0,len(vocab)):
         temp = []
         NumRecXTrueCDTrue = 1
         NumRecXTrueCDFalse = 1
-        NumRecXFalseCDTrue = 1
-        NumRecXFalseCDFalse = 1
 
         # index v will be vocab index
         for c in range(0,len(sentences)):
@@ -139,16 +141,25 @@ def main():
                 NumRecXTrueCDTrue+=1
             elif featureInclude[c][-1] == 0 and featureInclude[c][v] == 1:
                 NumRecXTrueCDFalse+=1
-            elif featureInclude[c][-1] == 1 and featureInclude[c][v] == 0:
-                NumRecXFalseCDTrue+=1
-            elif featureInclude[c][-1] == 0 and featureInclude[c][v] == 0:
-                NumRecXFalseCDFalse+=1
 
         temp = [math.log(Decimal(NumRecXTrueCDTrue)/Decimal(NumRecCDTrue+vocabLength)),
         math.log(Decimal(NumRecXTrueCDFalse)/Decimal(NumRecCDFalse+vocabLength))]
         VocabCondProb.append(temp)
 
-    accuracyTranning = ClassAccuracy(sentences, featureInclude,Pcd, vocab, vocabLength, VocabCondProb)
-    accuracyTesting = ClassAccuracy(sentences_ts, featureInclude_ts,Pcd, vocab, vocabLength, VocabCondProb)
 
+    #predicting using traning set
+    accuracyTranning, PredictedClassTr = Classification(sentences, featureInclude,Pcd, vocab, vocabLength, VocabCondProb)
+    accuracyTesting, PredictedClassTe = Classification(sentences_ts, featureInclude_ts,Pcd, vocab, vocabLength, VocabCondProb)
+
+    print "Predicted classification for traning data sentences:"
+    print PredictedClassTr
+    print "actual classification for traning data sentences"
+    print classification
+
+    print ""
+
+    print "Predicted classification for testing data sentences:"
+    print PredictedClassTr
+    print "actual classification for testing data sentences"
+    print classification_ts
 main()
