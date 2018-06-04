@@ -39,6 +39,8 @@ def pre_processing(sentences, classification):
     vocabLength = len(vocab)
     vocab.append("class Label")
 
+    if vocab[0] == "": del vocab[0]
+    
     # feature count array
     for c in range(0,len(sentences)):
         temp = []
@@ -78,9 +80,6 @@ def main():
     
     vocab, featureInclude = pre_processing(sentences, classification)
     vocab_ts, featureInclude_ts = pre_processing(sentences_ts, classification_ts)
-
-    if vocab[0] == "": del vocab[0] #delete the first index, if the list has an empty string 
-    if vocab_ts[0] == "": del vocab_ts[0]
 
     make_txt(sentences, vocab,featureInclude,"train")
     make_txt(sentences_ts, vocab_ts,featureInclude_ts,"test")
