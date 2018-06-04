@@ -1,7 +1,6 @@
 import sys
 import csv
 import numpy as np
-import collections, re
 
 alphabet_list = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 #Remove int from the list
