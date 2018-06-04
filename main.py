@@ -1,6 +1,9 @@
 import sys
-import csv
 import numpy as np
+import collections, re
+import math
+from decimal import *
+import csv
 
 alphabet_list = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 #Remove int from the list
@@ -40,7 +43,7 @@ def pre_processing(sentences, classification):
     vocab.append("class Label")
 
     if vocab[0] == "": del vocab[0]
-    
+
     # feature count array
     for c in range(0,len(sentences)):
         temp = []
@@ -51,7 +54,7 @@ def pre_processing(sentences, classification):
                 temp.append(0)
         temp.append(classification[c])
         featureInclude.append(temp)
-    
+
     return vocab, featureInclude
 
 def make_txt(sentence, vocab, feature, filetype):
@@ -70,6 +73,28 @@ def make_txt(sentence, vocab, feature, filetype):
                 w.writerow(item)
         csvfile.closed
 
+def ClassAccuracy(sentences, featureInclude, Pcd, vocab, vocabLength, VocabCondProb):
+    #calculations
+    PredictedClass = []
+    for s in range(0, len(sentences)):
+        PClass1=Pcd[0]
+        PClass0=Pcd[1]
+        for m in range(0,vocabLength):
+            if vocab[m] in sentences[s]:
+                PClass1 = PClass1 + VocabCondProb[m][0]
+                PClass0 = PClass0 + VocabCondProb[m][1]
+        if PClass1 > PClass0:
+            PredictedClass.append(1)
+        else:
+            PredictedClass.append(0)
+
+    #calculates accuracy
+    correct = 0.0;
+    for n in range(0,len(PredictedClass)):
+        if PredictedClass[n] == featureInclude[n][-1]:
+            correct+=1
+    return (correct/float(len(PredictedClass)))*100
+
 def main():
     #Pre-processing step
     training_data = open('trainingSet.txt','r')
@@ -77,7 +102,7 @@ def main():
 
     sentences, classification = get_data(training_data)
     sentences_ts, classification_ts = get_data(testing_data)
-    
+
     vocab, featureInclude = pre_processing(sentences, classification)
     vocab_ts, featureInclude_ts = pre_processing(sentences_ts, classification_ts)
 
@@ -98,7 +123,6 @@ def main():
             NumRecCDFalse+=1
 
     Pcd= [math.log(Decimal(NumRecCDTrue)/Decimal(NumRecords)),math.log(Decimal(NumRecCDFalse)/Decimal(NumRecords))]
-
     #calculating vocab conditional probability
     VocabCondProb =[]
 
@@ -121,41 +145,10 @@ def main():
                 NumRecXFalseCDFalse+=1
 
         temp = [math.log(Decimal(NumRecXTrueCDTrue)/Decimal(NumRecCDTrue+vocabLength)),
-        math.log(Decimal(NumRecXTrueCDFalse)/Decimal(NumRecCDFalse+vocabLength)),
-        math.log(Decimal(NumRecXFalseCDTrue)/Decimal(NumRecCDTrue+vocabLength)),
-        math.log(Decimal(NumRecXFalseCDFalse)/Decimal(NumRecCDFalse+vocabLength))]
+        math.log(Decimal(NumRecXTrueCDFalse)/Decimal(NumRecCDFalse+vocabLength))]
         VocabCondProb.append(temp)
 
-   #calculations
-
-    PredictedClass = []
-
-    for s in range(0, len(sentences_ts)):
-        PClass1=Pcd[0]
-        PClass0=Pcd[1]
-        for m in range(0,vocabLength):
-            if vocab[m] in sentences_ts[s]:
-                PClass1 = PClass1 + VocabCondProb[m][0]
-                PClass0 = PClass0 + VocabCondProb[m][1]
-            else:
-                PClass1 = PClass1 + VocabCondProb[m][2]
-                PClass0 = PClass0 + VocabCondProb[m][3]
-
-        print [PClass1,PClass0]
-
-
-        # if PClass1 > PClass0:
-        #     PredictedClass.append(1)
-        # else:
-        #     PredictedClass.append(0)
-
-    print PredictedClass
-
-
-        # for w in sentences_ts[0]:
-        #     if w in vocab:
-        #         indexV = vocab.index(w)
-        #         PClass1 = PClass1 * VocabCondProb[indexV][0]
-        #         PClass0 = PClass0 * VocabCondProb[indexV][1]
+    accuracyTranning = ClassAccuracy(sentences, featureInclude,Pcd, vocab, vocabLength, VocabCondProb)
+    accuracyTesting = ClassAccuracy(sentences_ts, featureInclude_ts,Pcd, vocab, vocabLength, VocabCondProb)
 
 main()
