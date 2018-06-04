@@ -126,21 +126,36 @@ def main():
         math.log(Decimal(NumRecXFalseCDFalse)/Decimal(NumRecCDFalse+vocabLength))]
         VocabCondProb.append(temp)
 
-    #calculations
-    PClass1=Pcd[0]
-    PClass0=Pcd[1]
+   #calculations
+
+    PredictedClass = []
+
+    for s in range(0, len(sentences_ts)):
+        PClass1=Pcd[0]
+        PClass0=Pcd[1]
+        for m in range(0,vocabLength):
+            if vocab[m] in sentences_ts[s]:
+                PClass1 = PClass1 + VocabCondProb[m][0]
+                PClass0 = PClass0 + VocabCondProb[m][1]
+            else:
+                PClass1 = PClass1 + VocabCondProb[m][2]
+                PClass0 = PClass0 + VocabCondProb[m][3]
+
+        print [PClass1,PClass0]
 
 
-    print vocabLength
-    for m in range(0,100):
-        if vocab[m] in sentences_ts[0]:
-            PClass1 = PClass1 * VocabCondProb[m][0]
-            PClass0 = PClass0 * VocabCondProb[m][1]
-        else:
-            PClass1 = PClass1 * VocabCondProb[m][2]
-            PClass0 = PClass0 * VocabCondProb[m][3]
+        # if PClass1 > PClass0:
+        #     PredictedClass.append(1)
+        # else:
+        #     PredictedClass.append(0)
 
-    print PClass0
-    print PClass1
+    print PredictedClass
+
+
+        # for w in sentences_ts[0]:
+        #     if w in vocab:
+        #         indexV = vocab.index(w)
+        #         PClass1 = PClass1 * VocabCondProb[indexV][0]
+        #         PClass0 = PClass0 * VocabCondProb[indexV][1]
 
 main()
